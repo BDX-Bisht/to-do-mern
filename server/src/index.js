@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
+import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorMiddleware.js';
 import taskRoutes from './routes/taskRoutes.js';
@@ -19,6 +20,17 @@ app.use(
   })
 );
 app.use(express.json());
+
+function sendStatusText(_req, res) {
+  const dbReady = mongoose.connection.readyState === 1;
+  const dbStatus = dbReady ? 'connected' : 'disconnected';
+  res
+    .type('text/plain')
+    .send(`Project backend is working fine! (MongoDB: ${dbStatus})`);
+}
+
+app.get('/', sendStatusText);
+app.get('/test', sendStatusText);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
